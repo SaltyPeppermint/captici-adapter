@@ -486,6 +486,7 @@ dependencies = [
  "amq-protocol",
  "lapin",
  "log",
+ "serde_json",
  "simple_logger",
  "tokio",
  "tokio-amqp",
