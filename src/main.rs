@@ -1,8 +1,15 @@
+// use bincode;
+mod rabbitmq;
+mod test_executer;
+
 use lapin::Channel;
 use log::info;
 use serde_json;
 use simple_logger;
-mod rabbitmq;
+
+macro_rules! string_vec {
+    ($($x:expr),*) => (vec![$($x.to_string()),*]);
+}
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -13,9 +20,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let channel: Channel = rabbitmq::get_channel().await;
     info!("CONNECTED");
-    while let Some(message) = rabbitmq::get_message(&channel, "mychannel").await {
+
+    let example_test_case = test_executer::TestCaseData {
+        name: String::from("Test case"),
+        test_type: test_executer::TestType::Dummy,
+        command: String::from("sh"),
+        args: string_vec!("-c", "bla"),
+        files_to_collect: string_vec!("test.log", "result.xml"),
+    };
+
+    let example_queue = "example-queue";
+    // let serialized_example = bincode::serialize(&example_test_case).expect("Couldn't serialize: ");
+    let serialized_example = serde_json::to_vec(&example_test_case).expect("Couldn't serialize");
+
+    rabbitmq::declare_queue(&channel, example_queue).await;
+    info!("Decleared queue {}!", &example_queue);
+
+    info!("Sending message: {:?}", &serialized_example);
+    rabbitmq::publish_message(&channel, &example_queue, serialized_example).await;
+
+    while let Some(message) = rabbitmq::get_message(&channel, &example_queue).await {
         let data = rabbitmq::ack_message(message).await;
-        let json = serde_json::de::from_slice(&data).expect("Deserializing failed");
+        // let test_case: TestCaseData = bincode::deserialize(&data).expect("Deserializing failed");
+        let test_case: test_executer::TestCaseData =
+            serde_json::from_slice(&data).expect("Deserializing failed");
+        info!("Recieved message: {:#?}", &test_case);
     }
 
     // Rest of your program

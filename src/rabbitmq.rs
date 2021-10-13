@@ -3,7 +3,7 @@ use lapin::message::BasicGetMessage;
 use lapin::options::*;
 use lapin::types::FieldTable;
 use lapin::{BasicProperties, Channel, Connection, ConnectionProperties, Queue};
-use log::info;
+// use log::info;
 
 pub async fn get_channel() -> Channel {
     let amqp_uri = create_amqp_uri();
@@ -20,7 +20,7 @@ pub async fn get_channel() -> Channel {
 fn create_amqp_uri() -> AMQPUri {
     let amqp_user_info = AMQPUserInfo {
         username: "user".into(),
-        password: "7HPDa9usy4".into(),
+        password: "OhoGrCuCkC".into(),
     };
     let amqp_authority = AMQPAuthority {
         userinfo: amqp_user_info,
@@ -35,24 +35,35 @@ fn create_amqp_uri() -> AMQPUri {
     }
 }
 
-pub async fn create_queue(channel: &Channel, queue_name: &str) -> Queue {
+pub async fn declare_queue(channel: &Channel, queue: &str) -> Queue {
     let queue = channel
-        .queue_declare(
-            queue_name,
-            QueueDeclareOptions::default(),
-            FieldTable::default(),
-        )
+        .queue_declare(queue, QueueDeclareOptions::default(), FieldTable::default())
         .await
         .expect("Problem declearing queue");
-    info!("Declared queue {:?}", queue);
+    // info!("Declared queue {:?}", queue);
     queue
 }
 
-pub async fn publish_message(channel: &Channel, payload: Vec<u8>) {
-    let confirm = channel
+// The default rabbitmq exchange binds to every queue with the routing key equivalent to the name
+// pub async fn bind_queue(channel: &Channel, queue: &str, routing_key: &str) {
+//     let queue = channel
+//         .queue_bind(
+//             queue,
+//             "",
+//             routing_key,
+//             QueueBindOptions::default(),
+//             FieldTable::default(),
+//         )
+//         .await
+//         .expect("Problem declearing queue");
+//     info!("Bound queue {:?}", queue);
+// }
+
+pub async fn publish_message(channel: &Channel, queue: &str, payload: Vec<u8>) {
+    channel
         .basic_publish(
             "",
-            "hello",
+            queue, // the default exchange "" binds to every queue with the binding "routing key = channel name"
             BasicPublishOptions::default(),
             payload,
             BasicProperties::default(),
@@ -64,7 +75,7 @@ pub async fn publish_message(channel: &Channel, payload: Vec<u8>) {
     //     _ => io:Err("AAAAAAAAAAAA"),
     // }
     // assert_eq!(confirm, Confirmation::NotRequested);
-    info!("Published message {:?}", confirm)
+    // info!("Published message {:?}", confirm)
 }
 
 pub async fn get_message(channel: &Channel, queue_name: &str) -> Option<BasicGetMessage> {
@@ -75,7 +86,7 @@ pub async fn get_message(channel: &Channel, queue_name: &str) -> Option<BasicGet
         Ok(m) => m,
         Err(error) => panic!("Problem getting message: {:?}", error),
     };
-    info!("Got message {:?}", message);
+    // info!("Got message {:?}", message);
     message
 }
 
