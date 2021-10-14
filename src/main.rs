@@ -21,12 +21,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let channel: Channel = rabbitmq::get_channel().await;
     info!("CONNECTED");
 
+    let example_test_case_Content = test_executer::TestCaseContent {
+        command: String::from("sh"),
+        args: string_vec!("-c", "bla"),
+    };
     let example_test_case = test_executer::TestCase {
         name: String::from("Test case"),
         test_type: test_executer::TestType::Dummy,
-        command: String::from("sh"),
-        args: string_vec!("-c", "bla"),
         files_to_collect: string_vec!("test.log", "result.xml"),
+        content: example_test_case_Content,
     };
 
     let example_queue = "example-queue";
