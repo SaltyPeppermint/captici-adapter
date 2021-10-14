@@ -21,19 +21,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let channel: Channel = rabbitmq::get_channel().await;
     info!("CONNECTED");
 
-    let example_test_case_Content = test_executer::TestCaseContent {
+    let example_test_case_content = test_executer::structs::TestCaseContent {
         command: String::from("sh"),
         args: string_vec!("-c", "bla"),
     };
-    let example_test_case = test_executer::TestCase {
+    let example_test_case = test_executer::structs::TestCase {
         name: String::from("Test case"),
-        test_type: test_executer::TestType::Dummy,
+        test_type: test_executer::structs::TestType::Dummy,
         files_to_collect: string_vec!("test.log", "result.xml"),
-        content: example_test_case_Content,
+        content: example_test_case_content,
     };
 
     let example_queue = "example-queue";
-    // let serialized_example = bincode::serialize(&example_test_case).expect("Couldn't serialize: ");
     let serialized_example = serde_json::to_vec(&example_test_case).expect("Couldn't serialize");
 
     rabbitmq::declare_queue(&channel, example_queue).await;
@@ -45,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(message) = rabbitmq::get_message(&channel, &example_queue).await {
         let data = rabbitmq::ack_message(message).await;
         // let test_case: TestCaseData = bincode::deserialize(&data).expect("Deserializing failed");
-        let test_case: test_executer::TestCase =
+        let test_case: test_executer::structs::TestCase =
             serde_json::from_slice(&data).expect("Deserializing failed");
         info!("Recieved message: {:#?}", &test_case);
         let test_result = test_executer::test(test_case);

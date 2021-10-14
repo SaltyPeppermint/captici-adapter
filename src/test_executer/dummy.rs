@@ -1,4 +1,4 @@
-use crate::test_executer::TestCaseContent;
+use crate::test_executer::structs::TestCaseContent;
 use std::process::Command;
 use std::process::Output;
 
