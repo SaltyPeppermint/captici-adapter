@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let channel: Channel = rabbitmq::get_channel().await;
     info!("CONNECTED");
 
-    let example_test_case = test_executer::TestCaseData {
+    let example_test_case = test_executer::TestCase {
         name: String::from("Test case"),
         test_type: test_executer::TestType::Dummy,
         command: String::from("sh"),
@@ -42,9 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(message) = rabbitmq::get_message(&channel, &example_queue).await {
         let data = rabbitmq::ack_message(message).await;
         // let test_case: TestCaseData = bincode::deserialize(&data).expect("Deserializing failed");
-        let test_case: test_executer::TestCaseData =
+        let test_case: test_executer::TestCase =
             serde_json::from_slice(&data).expect("Deserializing failed");
         info!("Recieved message: {:#?}", &test_case);
+        let test_result = test_executer::test(test_case);
+        info!("Recieved message: {:#?}", &test_result);
     }
 
     // Rest of your program
