@@ -489,21 +489,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
-name = "performance-test-adapter"
-version = "0.1.0"
-dependencies = [
- "amq-protocol",
- "bincode",
- "lapin",
- "log",
- "serde",
- "serde_json",
- "simple_logger",
- "tokio",
- "tokio-amqp",
-]
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -753,6 +738,21 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi",
+]
+
+[[package]]
+name = "test-adapter"
+version = "0.1.0"
+dependencies = [
+ "amq-protocol",
+ "bincode",
+ "lapin",
+ "log",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "tokio-amqp",
 ]
 
 [[package]]
