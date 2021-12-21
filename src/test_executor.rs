@@ -18,8 +18,19 @@ pub fn test(env_vars: &TestCase) -> TestResult {
     }
 }
 
+fn prepare_args(test_command: &String) -> Vec<&str> {
+    // let half_quoted_command = test_command.to_owned() + "'\"";
+    // let quoted_command = "\"'".to_owned() + half_quoted_command.as_str();
+    let arg_vec = vec!["-c", test_command.as_str()];
+    arg_vec
+    // let test_command_vec = test_command.split_whitespace();
+    // let result = string_vec.into_iter().chain(test_command_vec).collect();
+    // result
+}
+
 fn execute_test(test_command: &String) -> Output {
-    Command::new(test_command)
+    Command::new("sh")
+        .args(prepare_args(test_command))
         .output()
         .expect("failed to execute process")
 }
