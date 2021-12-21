@@ -3,7 +3,7 @@ mod structs;
 mod test_executor;
 
 use log::info;
-use simple_logger;
+use simple_logger::SimpleLogger;
 // macro_rules! string_vec {
 //     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 // }
@@ -12,7 +12,7 @@ fn main() {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "info");
     }
-    simple_logger::init_with_env().unwrap();
+    SimpleLogger::new().init().unwrap();
     info!("I'm logging");
 
     let env_vars = envs::gather_envs();

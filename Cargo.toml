@@ -5,7 +5,7 @@ edition = "2018"
 
 [dependencies]
 log = "*"
-simple_logger = "*"
+simple_logger = { version = "*", default-features = false}
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
 reqwest = { version = "*", default-features = false, features = ["blocking", "json", "rustls-tls"] }
