@@ -1,56 +1,42 @@
-// use bincode;
-mod rabbitmq;
-mod test_executer;
+mod envs;
+mod structs;
+mod test_executor;
 
-use lapin::Channel;
 use log::info;
-use serde_json;
 use simple_logger;
+// macro_rules! string_vec {
+//     ($($x:expr),*) => (vec![$($x.to_string()),*]);
+// }
 
-macro_rules! string_vec {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
-}
-
-#[tokio::main(flavor = "multi_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "info");
     }
     simple_logger::init_with_env().unwrap();
+    info!("I'm logging");
 
-    let channel: Channel = rabbitmq::get_channel().await;
-    info!("CONNECTED");
+    let env_vars = envs::gather_envs();
+    info!(
+        "Gathered environnement vars:\n {:?} \n Now running test...",
+        &env_vars
+    );
 
-    let example_test_case_content = test_executer::structs::TestCaseContent {
-        command: String::from("sh"),
-        args: string_vec!("-c", "bla"),
-    };
-    let example_test_case = test_executer::structs::TestCase {
-        name: String::from("Test case"),
-        test_type: test_executer::structs::TestType::Dummy,
-        files_to_collect: string_vec!("test.log", "result.xml"),
-        content: example_test_case_content,
-    };
+    let result = test_executor::test(&env_vars);
+    info!("Ran test. Gathered result:\n {:?}", &result);
 
-    let example_queue = "example-queue";
-    let serialized_example = serde_json::to_vec(&example_test_case).expect("Couldn't serialize");
+    let json_result = serde_json::to_string(&result).unwrap();
+    info!("Serialized result into json:\n {:?}", &result);
 
-    rabbitmq::declare_queue(&channel, example_queue).await;
-    info!("Decleared queue {}!", &example_queue);
+    let string_list = vec![
+        "cdpb-test-orchestrator".to_string(),
+        env_vars.namespace,
+        "svc.cluster.local".to_string(),
+    ];
+    let test_orchestrator = string_list.join(".");
 
-    info!("Sending message: {:?}", &serialized_example);
-    rabbitmq::publish_message(&channel, &example_queue, serialized_example).await;
+    info!("Uploading to {:?} ...", &test_orchestrator);
+    let client = reqwest::blocking::Client::new();
+    let res = client.post(test_orchestrator).body(json_result).send();
 
-    while let Some(message) = rabbitmq::get_message(&channel, &example_queue).await {
-        let data = rabbitmq::ack_message(message).await;
-        // let test_case: TestCaseData = bincode::deserialize(&data).expect("Deserializing failed");
-        let test_case: test_executer::structs::TestCase =
-            serde_json::from_slice(&data).expect("Deserializing failed");
-        info!("Recieved message: {:#?}", &test_case);
-        let test_result = test_executer::test(test_case);
-        info!("Recieved message: {:#?}", &test_result);
-    }
-
-    // Rest of your program
-    Ok(())
+    info!("Upload result: {:?}", res.unwrap().status())
 }

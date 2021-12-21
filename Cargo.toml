@@ -3,15 +3,12 @@ name = "test-adapter"
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-tokio = { version = "^1.0", features = ["rt-multi-thread", "macros"] }
-lapin = "^1.6"
-tokio-amqp = "1.0.0"
 log = "*"
-amq-protocol = "^6.0"
-simple_logger = "^1.0"
-serde = { version = "^1.0", features = ["derive"] }
-serde_json = "^1.0"
-bincode = "^1.0"
+simple_logger = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+reqwest = { version = "*", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+
+[profile.release]
+lto = true
