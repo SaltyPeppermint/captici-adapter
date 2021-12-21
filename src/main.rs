@@ -28,9 +28,9 @@ fn main() {
     info!("Serialized result into json:\n {:?}", &result);
 
     let string_list = vec![
-        "cdpb-test-orchestrator".to_string(),
+        "https://cdpb-test-orchestrator".to_owned(),
         env_vars.namespace,
-        "svc.cluster.local".to_string(),
+        "svc.cluster.local/internal/result".to_owned(),
     ];
     let test_orchestrator = string_list.join(".");
 
